@@ -1,0 +1,6 @@
+ebean:
+  test:
+    shutdown: stop  # stop | remove
+    platform: postgres
+    ddlMode: dropCreate # none | dropCreate | migrations | create
+    dbName: museums
