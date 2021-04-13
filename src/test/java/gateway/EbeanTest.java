@@ -19,8 +19,6 @@ public class EbeanTest {
                 .lng(3.321)
                 .description("description")
                 .address("aaa")
-                .categories("cat 1, cat 2")
-                .imageUrl("url")
                 .build();
 
         // insert the customer in the DB

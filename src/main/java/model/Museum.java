@@ -2,27 +2,33 @@ package model;
 
 import io.ebean.annotation.NotNull;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.List;
 
 @Entity
 public class Museum {
 
-    @Id
-    private long museumId;
-
+    @NotNull
     private final String name;
-
     //optional parameters
     private final String wikiLink;
     private final String website;
-    private final String location;
-    private final double lat;
-    private final double lng;
-    private final String description;
     private final String address;
-    private final String categories;
-    private final String imageUrl;
+    private final String location;
+    private final Double lat;
+    private final Double lng;
+    @Column(columnDefinition = "TEXT")
+    private final String description;
+    @ManyToMany
+    @JoinTable(
+            name = "museum_category",
+            joinColumns = @JoinColumn(name = "fk_museum_id", referencedColumnName = "museum_id"),
+            inverseJoinColumns = @JoinColumn(name = "fk_category_id", referencedColumnName = "category_id"))
+    private final List<Category> categories;
+    @OneToMany(mappedBy = "museum")
+    private final List<Image> images;
+    @Id
+    private long museumId;
 
     public Museum(Builder builder) {
         name = builder.name;
@@ -34,7 +40,7 @@ public class Museum {
         description = builder.description;
         address = builder.address;
         categories = builder.categories;
-        imageUrl = builder.imageUrl;
+        images = builder.images;
     }
 
     public long getMuseumId() {
@@ -73,12 +79,12 @@ public class Museum {
         return address;
     }
 
-    public String getCategories() {
+    public List<Category> getCategories() {
         return categories;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public List<Image> getImages() {
+        return images;
     }
 
     public static class Builder {
@@ -92,8 +98,8 @@ public class Museum {
         private double lng;
         private String description;
         private String address;
-        private String categories;
-        private String imageUrl;
+        private List<Category> categories;
+        private List<Image> images;
 
         public Builder(String name) {
             this.name = name;
@@ -124,13 +130,13 @@ public class Museum {
             return this;
         }
 
-        public Builder categories(String categories) {
+        public Builder categories(List<Category> categories) {
             this.categories = categories;
             return this;
         }
 
-        public Builder imageUrl(String imageUrl) {
-            this.imageUrl = imageUrl;
+        public Builder images(List<Image> images) {
+            this.images = images;
             return this;
         }
 

@@ -1,5 +1,7 @@
 package main;
 
+import io.ebean.DB;
+import model.Museum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +12,18 @@ public class Main {
 
 
     public static void main(String[] args) {
+        Museum museum = new Museum.Builder("Hello World")
+                .wikiLink("test")
+                .website("test")
+                .location("test")
+                .lat(1.123)
+                .lng(3.321)
+                .description("description")
+                .address("aaa")
+                .build();
+
+        // insert the customer in the DB
+        DB.save(museum);
         notFound((request, response) -> {
             response.type("application/json");
             return "{\"message\":\"Custom 404\"}";
