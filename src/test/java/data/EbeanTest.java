@@ -1,4 +1,4 @@
-package gateway;
+package data;
 
 import io.ebean.DB;
 import io.ebean.Database;

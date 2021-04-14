@@ -1,7 +1,6 @@
 package main;
 
-import io.ebean.DB;
-import model.Museum;
+import data.MuseumGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,21 +8,10 @@ import static spark.Spark.*;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
-
+    private static final MuseumGateway museumGateway = MuseumGateway.getInstance();
 
     public static void main(String[] args) {
-        Museum museum = new Museum.Builder("Hello World")
-                .wikiLink("test")
-                .website("test")
-                .location("test")
-                .lat(1.123)
-                .lng(3.321)
-                .description("description")
-                .address("aaa")
-                .build();
-
-        // insert the customer in the DB
-        DB.save(museum);
+        logger.info(museumGateway.searchMuseums("leonardo da vinci", "Milano"));
         notFound((request, response) -> {
             response.type("application/json");
             return "{\"message\":\"Custom 404\"}";
@@ -42,12 +30,10 @@ public class Main {
                 return "";
             });
 
-            path("/museums", () -> {
-                get("", (request, response) ->  {
-                    response.type("application/json");
-                    return "";
-                });
-            });
+            path("/museums", () -> get("", (request, response) ->  {
+                response.type("application/json");
+                return "";
+            }));
 
             get("/hello/:name", (request, response) ->
                     "Hello " + request.params(":name"));
