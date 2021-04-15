@@ -27,12 +27,6 @@ public class MuseumGateway {
     }
 
     public String searchMuseums(String query, String location) {
-        // QMuseum m = QMuseum.alias();
-        // DB.json().toJson(museums);
-        /*.select(m.museumId, m.name, m.location, m.wikiLink, m.website)
-            .orderBy()
-                .museumId.desc()
-            .setMaxRows(10)*/
         String[] keywords = splitQuery(query);
         String sql = searchStrategy.buildSelect(keywords, location);
         SqlRow row = DB.sqlQuery(sql)
