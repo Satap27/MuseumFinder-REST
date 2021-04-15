@@ -1,4 +1,4 @@
-package main;
+package presentation;
 
 import io.ebean.annotation.Platform;
 import io.ebean.dbmigration.DbMigration;

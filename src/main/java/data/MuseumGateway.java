@@ -1,6 +1,5 @@
 package data;
 
-import application.LocationStrategy;
 import application.ScoreStrategy;
 import application.SearchStrategy;
 import io.ebean.DB;
@@ -13,7 +12,7 @@ import org.slf4j.LoggerFactory;
 public class MuseumGateway {
     private static final Logger logger = LoggerFactory.getLogger(MuseumGateway.class);
     private static MuseumGateway instance = null;
-    private SearchStrategy searchStrategy = new LocationStrategy();
+    private SearchStrategy searchStrategy = new ScoreStrategy();
 
 
     public static MuseumGateway getInstance() {
@@ -24,6 +23,12 @@ public class MuseumGateway {
         }
         logger.info("MuseumGateway instance retrieved");
         return instance;
+    }
+
+    public void setStrategy(SearchStrategy searchStrategy) {
+        logger.info("Setting new search strategy (" + searchStrategy.getClass().getName() + ")...");
+        this.searchStrategy = searchStrategy;
+        logger.info(searchStrategy.getClass().getName() + " set");
     }
 
     public String searchMuseums(String query, String location) {
