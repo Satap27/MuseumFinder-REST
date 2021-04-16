@@ -17,7 +17,7 @@ public class ScoreStrategy implements SearchStrategy {
                             "(SELECT sum(ts_rank_cd(m.description_tsv, to_tsquery('italian', '%s'))) FROM museum as m)) + ",
                     keyword, keyword));
         }
-        query = query.substring(0, query.length() - 3).concat(") AS score, m.* FROM museum m) S ORDER BY score DESC LIMIT 100) list;");
+        query = query.substring(0, query.length() - 3).concat(") AS score, m.* FROM museum m) S WHERE score > 0 ORDER BY score DESC LIMIT 100) list;");
         logger.debug("QUERY:" + query);
         return query;
     }

@@ -1,19 +1,18 @@
 package application;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.*;
 import data.MuseumGateway;
 import io.ebean.DB;
 import model.Log;
 import model.Museum;
+import model.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 public class Controller {
     static final Logger logger = LoggerFactory.getLogger(Controller.class);
     MuseumGateway museumGateway = MuseumGateway.getInstance();
+    Gson gson = new Gson();
 
     /**
      * Returns a JSON encoded museum, based on the provided museum id.
@@ -23,27 +22,32 @@ public class Controller {
      */
     public String getMuseum(String museumId) {
         long parsedId;
+        Response response = new Response();
         try {
             parsedId = Long.parseLong(museumId);
         } catch (NumberFormatException e) {
+            // TODO 422 (unprocessable entity)
             logger.error(Log.getStringStackTrace(e));
-            // TODO
-            return "QUERY MALFORMATA";
+            response.setMessage("Provided museum id is not a number!");
+            return gson.toJson(response);
         }
         Museum museum;
         try {
             museum = museumGateway.getMuseum(parsedId);
         } catch (Exception e) {
+            // TODO 500 (internal server error)
             logger.error(Log.getStringStackTrace(e));
-            // TODO
-            return "ECCEZIONE";
+            response.setMessage("Something went wrong!");
+            return gson.toJson(response);
         }
         if (museum == null) {
-            // TODO
+            // TODO 404 (not found)
             logger.warn("Museum with id " + museumId + " not found!");
-            return "MUSEO NON TROVATO";
-        } else
-            return DB.json().toJson(museum);
+            response.setMessage("Museum not found.");
+            return gson.toJson(response);
+        } else {
+            return gson.toJson(encapsulateJsonObject(gson.toJsonTree(response), "museum", DB.json().toJson(museum)));
+        }
     }
 
     /**
@@ -56,22 +60,40 @@ public class Controller {
      */
     public String searchMuseums(String body) {
         String query, location;
+        Response response = new Response();
         try {
-            Map<String, String> json = new Gson().fromJson(body, Map.class);
-            query = json.get("query");
-            location = json.get("location");
-            museumGateway.setStrategy(location != null ? new LocationStrategy() : new ScoreStrategy());
-        } catch (JsonSyntaxException e) {
+            JsonObject json = gson.fromJson(body, JsonObject.class);
+            JsonElement queryElement = json.get("query");
+            JsonElement locationElement = json.get("location");
+            if (queryElement.isJsonNull())
+                throw new IllegalArgumentException("a query value is required and can't be null");
+            query = queryElement.getAsString();
+            location = locationElement.isJsonNull() ? null : locationElement.getAsString();
+            museumGateway.setStrategy((location != null && !location.equals("")) ? new LocationStrategy() : new ScoreStrategy());
+        } catch (JsonSyntaxException | IllegalArgumentException | NullPointerException e) {
+            // TODO 422 (unprocessable entity)
             logger.error(Log.getStringStackTrace(e));
-            // TODO
-            return "MALFORMATA";
+            response.setMessage("Malformed query!");
+            return gson.toJson(response);
         }
-        String responseBody = museumGateway.searchMuseums(query, location);
-        if (responseBody == null) {
+        String museumsJsonArray = museumGateway.searchMuseums(query, location);
+        if (museumsJsonArray == null) {
             logger.warn("No results for query '" + query + "' and location '" + location + "'");
-            // TODO
-            return "NIENTE";
+            response.setMessage("No results");
+            return gson.toJson(encapsulateJsonArray(gson.toJsonTree(response), "museums", "[]"));
         }
-        return responseBody;
+        return gson.toJson(encapsulateJsonArray(gson.toJsonTree(response), "museums", museumsJsonArray));
+    }
+
+    private JsonElement encapsulateJsonObject(JsonElement jsonElement, String name, String json) {
+        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+        jsonElement.getAsJsonObject().add(name, gson.toJsonTree(jsonObject));
+        return jsonElement;
+    }
+
+    private JsonElement encapsulateJsonArray(JsonElement jsonElement, String name, String json) {
+        JsonArray jsonArray = gson.fromJson(json, JsonArray.class);
+        jsonElement.getAsJsonObject().add(name, gson.toJsonTree(jsonArray));
+        return jsonElement;
     }
 }
