@@ -5,10 +5,11 @@ import java.io.StringWriter;
 
 public class Log {
 
-    /** Returns a printable stack trace, given the caught exception. This string could eventually be logged.
+    /**
+     * Returns a printable stack trace, given the caught exception. This string could eventually be logged.
      *
-     * @param   e   the caught exception
-     * @return      the exception stack trace as a string
+     * @param e the caught exception
+     * @return the exception stack trace as a string
      */
     public static String getStringStackTrace(Exception e) {
         StringWriter stringWriter = new StringWriter();

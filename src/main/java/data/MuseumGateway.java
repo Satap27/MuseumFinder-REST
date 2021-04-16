@@ -16,9 +16,10 @@ public class MuseumGateway {
     private SearchStrategy searchStrategy = new ScoreStrategy();
 
 
-    /** Returns the only MuseumGateway instance (Singleton pattern)
+    /**
+     * Returns the only MuseumGateway instance (Singleton pattern)
      *
-     * @return  the MuseumGateway instance
+     * @return the MuseumGateway instance
      */
     public static MuseumGateway getInstance() {
         logger.info("Retrieving MuseumGateway instance...");
@@ -30,9 +31,10 @@ public class MuseumGateway {
         return instance;
     }
 
-    /** Sets a new search strategy (<b>ScoreStrategy</b> or <b>LocationStrategy</b>).
+    /**
+     * Sets a new search strategy (<b>ScoreStrategy</b> or <b>LocationStrategy</b>).
      *
-     * @param   searchStrategy  a searchStrategy implementation
+     * @param searchStrategy a searchStrategy implementation
      */
     public void setStrategy(SearchStrategy searchStrategy) {
         logger.info("Setting new search strategy (" + searchStrategy.getClass().getName() + ")...");
@@ -40,11 +42,12 @@ public class MuseumGateway {
         logger.info(searchStrategy.getClass().getName() + " set");
     }
 
-    /** Returns the list of museums found with the full-text search, given a query and an optional location.
+    /**
+     * Returns the list of museums found with the full-text search, given a query and an optional location.
      *
-     * @param   query       a string query for the full-text search
-     * @param   location    a nullable string location
-     * @return              a JSON string with a list of museums
+     * @param query    a string query for the full-text search
+     * @param location a nullable string location
+     * @return a JSON string with a list of museums
      */
     public String searchMuseums(String query, @Nullable String location) {
         String[] keywords = splitQuery(query);
@@ -56,10 +59,11 @@ public class MuseumGateway {
         } else throw new IllegalArgumentException();
     }
 
-    /** Returns a Museum object if the museum with the given id exists in the database, or <b>null</b> otherwise.
+    /**
+     * Returns a Museum object if the museum with the given id exists in the database, or <b>null</b> otherwise.
      *
-     * @param   museumId    the museum id
-     * @return              a Museum object
+     * @param museumId the museum id
+     * @return a Museum object
      */
     public Museum getMuseum(long museumId) {
         return new QMuseum()
@@ -67,10 +71,11 @@ public class MuseumGateway {
                 .findOne();
     }
 
-    /** Returns the list of keywords, generated from a query on an italian PostgreSQL dictionary.
+    /**
+     * Returns the list of keywords, generated from a query on an italian PostgreSQL dictionary.
      *
-     * @param   query   a string query
-     * @return          the list of keywords retrieved from the query
+     * @param query a string query
+     * @return the list of keywords retrieved from the query
      */
     private String[] splitQuery(String query) {
         logger.info("Splitting query \"" + query + "\" into keywords...");
