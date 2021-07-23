@@ -1,4 +1,4 @@
-package application;
+package business_logic;
 
 import com.google.gson.*;
 import data.MuseumGateway;
@@ -10,9 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Controller {
-    static final Logger logger = LoggerFactory.getLogger(Controller.class);
-    MuseumGateway museumGateway = MuseumGateway.getInstance();
-    Gson gson = new Gson();
+    private static final Logger logger = LoggerFactory.getLogger(Controller.class);
+    private final MuseumGateway museumGateway = MuseumGateway.getInstance();
+    private final Gson gson = new Gson();
 
     /**
      * Returns a JSON encoded museum, based on the provided museum id.

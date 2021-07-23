@@ -1,4 +1,4 @@
-package application;
+package business_logic;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;

@@ -4,3 +4,12 @@ ebean:
     platform: postgres
     ddlMode: dropCreate # none | dropCreate | migrations | create
     dbName: museums
+
+  docstore:
+    url: http://192.168.86.30:9200
+    active: true
+    generateMapping: true
+    dropCreate: true
+
+
+

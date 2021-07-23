@@ -1,4 +1,4 @@
-package application;
+package business_logic;
 
 import org.sonatype.inject.Nullable;
 

@@ -1,6 +1,6 @@
-package presentation;
+package service;
 
-import application.Controller;
+import business_logic.Controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,12 +31,12 @@ public class Main {
             });
 
             get("/museums", (request, response) -> {
-                response.type("application/json");
+                response.type("business_logic/json");
                 return controller.searchMuseums(request.body());
             });
 
             path("/museum", () -> get("/:museumId", (request, response) -> {
-                response.type("application/json");
+                response.type("business_logic/json");
                 return controller.getMuseum(request.params(":museumId"));
             }));
 

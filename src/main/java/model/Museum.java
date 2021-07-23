@@ -1,10 +1,12 @@
 package model;
 
+import io.ebean.annotation.DocStore;
 import io.ebean.annotation.NotNull;
 
 import javax.persistence.*;
 import java.util.List;
 
+@DocStore
 @Entity
 public class Museum {
 

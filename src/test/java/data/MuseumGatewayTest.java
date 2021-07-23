@@ -1,6 +1,7 @@
 package data;
 
 import io.ebean.DB;
+import io.ebean.Database;
 import model.Museum;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;

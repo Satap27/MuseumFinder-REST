@@ -1,7 +1,7 @@
 package data;
 
-import application.ScoreStrategy;
-import application.SearchStrategy;
+import business_logic.ScoreStrategy;
+import business_logic.SearchStrategy;
 import io.ebean.DB;
 import io.ebean.SqlRow;
 import model.Museum;
@@ -9,6 +9,8 @@ import model.query.QMuseum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.inject.Nullable;
+
+import java.util.List;
 
 public class MuseumGateway {
     private static final Logger logger = LoggerFactory.getLogger(MuseumGateway.class);

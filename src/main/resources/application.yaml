@@ -3,3 +3,11 @@ datasource:
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_DATABASE}
+
+
+ebean:
+  docstore:
+    url: http://192.168.86.30:9200
+    active: true
+    generateMapping: true
+    dropCreate: true
