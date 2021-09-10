@@ -1,6 +1,6 @@
 package model;
 
-public class Response {
+public class Message {
     String message = null;
 
     public void setMessage(String message) {

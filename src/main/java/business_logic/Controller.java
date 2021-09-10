@@ -1,99 +1,106 @@
 package business_logic;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import data.MuseumGateway;
-import io.ebean.DB;
+import data.UserGateway;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.impl.crypto.DefaultJwtSignatureValidator;
 import model.Log;
-import model.Museum;
-import model.Response;
+import model.Message;
+import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import spark.Response;
+
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
+
+import static io.jsonwebtoken.SignatureAlgorithm.HS256;
 
 public class Controller {
-    private static final Logger logger = LoggerFactory.getLogger(Controller.class);
-    private final MuseumGateway museumGateway = MuseumGateway.getInstance();
-    private final Gson gson = new Gson();
+    protected static final Logger logger = LoggerFactory.getLogger(Controller.class);
+    protected final MuseumGateway museumGateway = MuseumGateway.getInstance();
+    protected final UserGateway userGateway = UserGateway.getInstance();
+    protected final Gson gson = new Gson();
 
-    /**
-     * Returns a JSON encoded museum, based on the provided museum id.
-     *
-     * @param museumId a string which should contain a museum id (long)
-     * @return Museum object as a JSON string
-     */
-    public String getMuseum(String museumId) {
+
+    protected User getUser(String userId) throws ResponseException {
         long parsedId;
-        Response response = new Response();
         try {
-            parsedId = Long.parseLong(museumId);
+            parsedId = Long.parseLong(userId);
         } catch (NumberFormatException e) {
-            // TODO 422 (unprocessable entity)
             logger.error(Log.getStringStackTrace(e));
-            response.setMessage("Provided museum id is not a number!");
-            return gson.toJson(response);
+            throw new ResponseException("Provided user id is not a number!", 422);
         }
-        Museum museum;
+        User user;
         try {
-            museum = museumGateway.getMuseum(parsedId);
+            user = userGateway.getUser(parsedId);
         } catch (Exception e) {
-            // TODO 500 (internal server error)
             logger.error(Log.getStringStackTrace(e));
-            response.setMessage("Something went wrong!");
-            return gson.toJson(response);
+            throw new ResponseException("Something went wrong!", 500);
         }
-        if (museum == null) {
-            // TODO 404 (not found)
-            logger.warn("Museum with id " + museumId + " not found!");
-            response.setMessage("Museum not found.");
-            return gson.toJson(response);
-        } else {
-            return gson.toJson(encapsulateJsonObject(gson.toJsonTree(response), "museum", DB.json().toJson(museum)));
+        if (user == null) {
+            logger.warn("User with id " + userId + " not found!");
+            throw new ResponseException("User not found.", 404);
         }
+        return user;
     }
 
-    /**
-     * Returns a JSON encoded list of museums, based on the query and the location
-     * provided by the user in the request body.
-     *
-     * @param body a JSON string which represents the request body.
-     *             The body must contain <b>query</b> and <b>location</b> properties
-     * @return response body as a JSON string
-     */
-    public String searchMuseums(String body) {
-        String query, location;
-        Response response = new Response();
-        try {
-            JsonObject json = gson.fromJson(body, JsonObject.class);
-            JsonElement queryElement = json.get("query");
-            JsonElement locationElement = json.get("location");
-            if (queryElement.isJsonNull())
-                throw new IllegalArgumentException("a query value is required and can't be null");
-            query = queryElement.getAsString();
-            location = locationElement.isJsonNull() ? null : locationElement.getAsString();
-            museumGateway.setStrategy((location != null && !location.equals("")) ? new LocationStrategy() : new ScoreStrategy());
-        } catch (JsonSyntaxException | IllegalArgumentException | NullPointerException e) {
-            // TODO 422 (unprocessable entity)
-            logger.error(Log.getStringStackTrace(e));
-            response.setMessage("Malformed query!");
-            return gson.toJson(response);
+    protected User decryptJTW(String token) throws Exception {
+        Base64.Decoder decoder = Base64.getDecoder();
+        String[] chunks = token.replace("Bearer ", "").split("\\.");
+        String payload = new String(decoder.decode(chunks[1]));
+        SignatureAlgorithm signatureAlgorithm = HS256;
+        String secretKey = System.getenv("JWT_SECRET_KEY");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), signatureAlgorithm.getJcaName());
+        String tokenWithoutSignature = chunks[0] + "." + chunks[1];
+        String signature = chunks[2];
+        DefaultJwtSignatureValidator validator = new DefaultJwtSignatureValidator(signatureAlgorithm, secretKeySpec);
+        if (!validator.isValid(tokenWithoutSignature, signature)) {
+            throw new Exception("Could not verify JWT token integrity!");
         }
-        String museumsJsonArray = museumGateway.searchMuseums(query, location);
-        if (museumsJsonArray == null) {
-            logger.warn("No results for query '" + query + "' and location '" + location + "'");
-            response.setMessage("No results");
-            return gson.toJson(encapsulateJsonArray(gson.toJsonTree(response), "museums", "[]"));
-        }
-        return gson.toJson(encapsulateJsonArray(gson.toJsonTree(response), "museums", museumsJsonArray));
+        JsonObject jsonObject = gson.fromJson(payload, JsonObject.class);
+        return userGateway.getUser(jsonObject.get("sub").getAsLong());
     }
 
-    private JsonElement encapsulateJsonObject(JsonElement jsonElement, String name, String json) {
+    protected JsonElement encapsulateJsonObject(JsonElement jsonElement, String name, String json) {
         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
         jsonElement.getAsJsonObject().add(name, gson.toJsonTree(jsonObject));
         return jsonElement;
     }
 
-    private JsonElement encapsulateJsonArray(JsonElement jsonElement, String name, String json) {
+    protected JsonElement encapsulateJsonArray(JsonElement jsonElement, String name, String json) {
         JsonArray jsonArray = gson.fromJson(json, JsonArray.class);
         jsonElement.getAsJsonObject().add(name, gson.toJsonTree(jsonArray));
         return jsonElement;
+    }
+
+    protected Response generateErrorResponse(Response response, String messageText, int statusCode) {
+        Message message = new Message();
+        message.setMessage(messageText);
+        response.body(gson.toJson(message));
+        response.status(statusCode);
+        return response;
+    }
+}
+
+class ResponseException extends Exception {
+    String message;
+    int statusCode;
+    public ResponseException (String message, int statusCode){
+        this.message = message;
+        this.statusCode = statusCode;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
+
+    public int getStatusCode() {
+        return statusCode;
     }
 }

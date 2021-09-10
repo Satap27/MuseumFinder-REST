@@ -4,10 +4,11 @@ datasource:
     password: ${DB_PASSWORD}
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_DATABASE}
 
-
 ebean:
   docstore:
-    url: http://192.168.86.30:9200
+    url: http://${ELASTIC_HOST}:${ELASTIC_PORT}
     active: true
     generateMapping: true
-    dropCreate: true
+    dropCreate: false
+  migration:
+    run: true

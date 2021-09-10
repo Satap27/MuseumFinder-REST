@@ -1,15 +1,22 @@
 package data;
 
+import business_logic.LocationStrategy;
 import business_logic.ScoreStrategy;
 import business_logic.SearchStrategy;
 import io.ebean.DB;
+import io.ebean.DocumentStore;
+import io.ebean.PagedList;
 import io.ebean.SqlRow;
+import io.ebean.search.MultiMatch;
 import model.Museum;
+import model.query.QCategory;
 import model.query.QMuseum;
+import model.query.QUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.inject.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MuseumGateway {
@@ -31,6 +38,24 @@ public class MuseumGateway {
         }
         logger.info("MuseumGateway instance retrieved");
         return instance;
+    }
+
+    static double haversine(Double lat1, Double lon1,
+                            Double lat2, Double lon2) {
+        if (lat1 == null || lon1 == null) {
+            return 10000;
+        }
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        lat1 = Math.toRadians(lat1);
+        lat2 = Math.toRadians(lat2);
+        double a = Math.pow(Math.sin(dLat / 2), 2) +
+                Math.pow(Math.sin(dLon / 2), 2) *
+                        Math.cos(lat1) *
+                        Math.cos(lat2);
+        double rad = 6371;
+        double c = 2 * Math.asin(Math.sqrt(a));
+        return rad * c;
     }
 
     /**
@@ -70,7 +95,46 @@ public class MuseumGateway {
     public Museum getMuseum(long museumId) {
         return new QMuseum()
                 .museumId.eq(museumId)
+                .categories.fetch(QCategory.alias().name)
+                .owners.fetch(QUser.alias().username)
                 .findOne();
+    }
+
+    public long saveMuseum(Museum museum) {
+        DB.save(museum);
+        return museum.getMuseumId();
+    }
+
+    public void initializeIndex() {
+        DocumentStore documentStore = DB.getDefault().docStore();
+        documentStore.indexAll(Museum.class);
+    }
+
+    public List<Museum> fullText(String query) {
+        MultiMatch multiMatch =
+                MultiMatch.fields("description", "name")
+                        .opAnd()
+                        .type(MultiMatch.Type.CROSS_FIELDS);
+
+        //CROSS_FIELDS Treats fields with the same analyzer as though they were one big field. Looks for each word in any field.
+
+        PagedList<Museum> museums = DB.find(Museum.class)
+                .text()
+                .multiMatch(query, multiMatch)
+                .select("museumId, name")
+                .setMaxRows(100)
+                .findPagedList();
+        List<Museum> museumList = museums.getList();
+        if (searchStrategy.getClass() == LocationStrategy.class) {
+            //museumList.removeIf(museum -> haversine(museum.getLat(), museum.getLng(), 10., 40.) >= 50);
+            List<Museum> museumsFiltered = new ArrayList<>();
+            for (Museum museum: museumList) {
+                if (haversine(museum.getLat(), museum.getLng(), 10., 43.) <= 50)
+                    museumsFiltered.add(museum);
+            }
+            return museumsFiltered;
+        }
+        return museumList;
     }
 
     /**

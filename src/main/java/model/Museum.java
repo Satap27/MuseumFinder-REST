@@ -1,38 +1,43 @@
 package model;
 
 import io.ebean.annotation.DocStore;
+import io.ebean.annotation.Identity;
 import io.ebean.annotation.NotNull;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.Set;
 
 @DocStore
 @Entity
 public class Museum {
 
     @NotNull
-    private final String name;
+    private String name;
     //optional parameters
-    private final String wikiLink;
-    private final String website;
-    private final String address;
-    private final String location;
-    private final Double lat;
-    private final Double lng;
+    private String wikiLink;
+    private String website;
+    private String address;
+    private String location;
+    private Double lat;
+    private Double lng;
     @Column(columnDefinition = "TEXT")
-    private final String description;
+    private String description;
     @ManyToMany
     @JoinTable(
             name = "museum_category",
             joinColumns = @JoinColumn(name = "fk_museum_id", referencedColumnName = "museum_id"),
             inverseJoinColumns = @JoinColumn(name = "fk_category_id", referencedColumnName = "category_id"))
-    private final List<Category> categories;
+    private final Set<Category> categories;
     @OneToMany(mappedBy = "museum")
-    private final List<Image> images;
-    @Id
+    private final Set<Image> images;
+    @Id @Identity(start=10000)
     private long museumId;
 
+    @ManyToMany(mappedBy = "ownedMuseums")
+    private Set<User> owners;
+
     public Museum(Builder builder) {
+        museumId = builder.museumId;
         name = builder.name;
         wikiLink = builder.wikiLink;
         website = builder.website;
@@ -65,11 +70,11 @@ public class Museum {
         return location;
     }
 
-    public double getLat() {
+    public Double getLat() {
         return lat;
     }
 
-    public double getLng() {
+    public Double getLng() {
         return lng;
     }
 
@@ -81,16 +86,57 @@ public class Museum {
         return address;
     }
 
-    public List<Category> getCategories() {
+    public Set<Category> getCategories() {
         return categories;
     }
 
-    public List<Image> getImages() {
+    public Set<Image> getImages() {
         return images;
+    }
+
+    public Set<User> getOwners() {
+        return owners;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setWikiLink(String wikiLink) {
+        this.wikiLink = wikiLink;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public void setLat(Double lat) {
+        this.lat = lat;
+    }
+
+    public void setLng(Double lng) {
+        this.lng = lng;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setOwners(Set<User> owners) {
+        this.owners = owners;
     }
 
     public static class Builder {
         //required parametrs
+        private final long museumId;
         private final String name;
         //optional parameters
         private String wikiLink;
@@ -100,10 +146,11 @@ public class Museum {
         private double lng;
         private String description;
         private String address;
-        private List<Category> categories;
-        private List<Image> images;
+        private Set<Category> categories;
+        private Set<Image> images;
 
-        public Builder(String name) {
+        public Builder(long museumId, String name) {
+            this.museumId = museumId;
             this.name = name;
         }
 
@@ -132,12 +179,12 @@ public class Museum {
             return this;
         }
 
-        public Builder categories(List<Category> categories) {
+        public Builder categories(Set<Category> categories) {
             this.categories = categories;
             return this;
         }
 
-        public Builder images(List<Image> images) {
+        public Builder images(Set<Image> images) {
             this.images = images;
             return this;
         }
@@ -155,6 +202,17 @@ public class Museum {
         public Museum build() {
             return new Museum(this);
         }
+    }
+
+    public void updateWith(Museum newMuseum) {
+        this.name = newMuseum.getName();
+        this.wikiLink = newMuseum.getWikiLink();
+        this.website = newMuseum.getWebsite();
+        this.address = newMuseum.getAddress();
+        this.location = newMuseum.getLocation();
+        this.lat = newMuseum.getLat();
+        this.lng = newMuseum.getLng();
+        this.description = newMuseum.getDescription();
     }
 }
 

@@ -15,7 +15,7 @@ class MuseumGatewayTest {
     @BeforeAll
     static void initialize() {
         logger.info("Initializing database with a test museum");
-        Museum museum = new Museum.Builder("test")
+        Museum museum = new Museum.Builder(1, "test")
                 .description("description")
                 .build();
         DB.save(museum);
