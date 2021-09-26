@@ -140,7 +140,7 @@ public class MuseumController extends Controller{
             logger.error(Log.getStringStackTrace(e));
             return generateErrorResponse(response, "Malformed query!", 422);
         }
-        String museumsJsonArray = DB.json().toJson(museumGateway.fullText(query));
+        String museumsJsonArray = gson.toJson(museumGateway.searchMuseums(query, location));
         if (Objects.equals(museumsJsonArray, "[]")) {
             logger.warn("No results for query '" + query + "' and location '" + location + "'");
             message.setMessage("No results");

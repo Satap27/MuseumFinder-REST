@@ -1,14 +1,17 @@
 package business_logic;
 
+import model.Museum;
 import org.sonatype.inject.Nullable;
+
+import java.util.List;
 
 public interface SearchStrategy {
     /**
      * Returns a PostgreSQL query for a full-text search, based on the keywords and an optional location.
      *
-     * @param keywords a list of keywords for the full-text search
+     * @param museums a list of museums
      * @param location a nullable string with the preferred location
-     * @return the select PostgreSQL query
+     * @return the filtered list of museums
      */
-    String buildSelect(String[] keywords, @Nullable String location);
+    List<Museum> filterList(List<Museum> museums, @Nullable String location);
 }

@@ -47,10 +47,6 @@ public class Main {
                     return museumController.getMuseumResponse(request.params(":museumId"), response);
                 });
 
-                put("/:museumId/owner", (request, response) -> {
-                    response.type("application/json");
-                    return museumController.addOwner(request.params(":museumId"), "2", response, request.headers("Authorization"));
-                });
 
                 put("/:museumId", (request, response) -> {
                     response.type("application/json");
@@ -62,6 +58,10 @@ public class Main {
                     return museumController.saveMuseumResponse(request.body(), response, null, request.headers("Authorization"));
                 });
 
+                put("/:museumId/owner", (request, response) -> {
+                    response.type("application/json");
+                    return museumController.addOwner(request.params(":museumId"), "2", response, request.headers("Authorization"));
+                });
             });
 
             path("/user", () -> {
