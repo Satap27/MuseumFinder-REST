@@ -18,3 +18,10 @@ A detailed document about the implementation, the research and its results is av
 > * Finally, **museum owners** can request the addition (but also the removal) of their own museum. The owner of a museum that is present in the database can access an interface that allows him to perform various operations: add events (ticket price reductions, special exhibitions) or view a series of statistics such as the number of visits to the page or the number of reservations.
 >
 > The application also includes an error reporting mechanism; users can make reports if they notice inaccuracies or missing information for a given museum. These are reviewed by the respective museum owners who have the option to approve or disapprove them. The approved requests are then sent to the administrator, who proceeds with the modification. Any changes can also be requested directly from the owner of a museum and in this case obviously do not require approval.
+
+## Technologies and frameworks
+The REST interface implementation is built over some _lightweight_ JavaSE frameworks, and an external API:
+
+* [**Java Spark**](https://sparkjava.com/), a simple and expressive web framework that allow to rapidly build REST API. 
+* [**Ebean**](https://ebean.io/), provides a service of **Object-relational Mapping** (ORM), placing itself as an intermediary between the program logic and the Database. It represents an alternative to heavier platforms like Hibernate.
+* [**Elasticsearch**](https://www.elastic.co/), an extremely powerful search engine, specialized in **full-text search** and integrable with _Ebean_ through the API that Elasticsearch exposes. It is implemented as a document oriented database, which indexes the supplied documents so that searching and retrieval are very fast.
